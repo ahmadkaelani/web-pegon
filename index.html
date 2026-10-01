@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Translator Pegon - SD Insan Nurul Fikri</title>
+  <link rel="icon" href="logo.png" type="image/png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+    
+    .pegon-text {
+      font-family: 'Amiri', 'Traditional Arabic', serif;
+      font-size: 2rem;
+      line-height: 3rem;
+    }
+
+    body {
+      margin: 0;
+      overflow-x: hidden;
+    }
+    
+    /* Latar belakang jaringan ramer / network */
+    #networkCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      background: linear-gradient(135deg, #0f172a, #1d4ed8, #1e3a8a); /* Gradien biru gelap elegan */
+    }
+
+    /* Glassmorphism UI */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+    
+    .glass-input {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    .glass-input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+    .glass-input:focus {
+      background: rgba(0, 0, 0, 0.3);
+      border-color: rgba(96, 165, 250, 0.5); /* blue-400 */
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Kustomisasi scrollbar untuk text area */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05); 
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2); 
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.4); 
+    }
+  </style>
+</head>
+<body class="text-gray-100 font-sans min-h-screen relative flex flex-col p-4 md:p-8">
+
+  <!-- Background Animasi Network -->
+  <canvas id="networkCanvas"></canvas>
+
+  <div class="max-w-6xl mx-auto w-full relative z-10 flex-grow flex flex-col">
+    <!-- Header -->
+    <div class="flex flex-col items-center mb-10 mt-4">
+      <!-- Logo Natural (Tanpa Shape/Border/Rounding) -->
+      <img src="logo.png" alt="Logo SD Insan Nurul Fikri" class="w-36 h-auto mb-6 drop-shadow-2xl">
+      
+      <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white mb-2 text-center drop-shadow-lg tracking-tight">
+        Translator Pegon Nusantara
+      </h1>
+      <p class="text-blue-200 font-medium text-center tracking-widest uppercase text-sm md:text-base opacity-80">
+        SD INSAN NURUL FIKRI DEPOK
+      </p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow">
+      
+      <!-- Box Input Latin -->
+      <div class="glass-card p-6 rounded-2xl flex flex-col h-[500px] transition-transform duration-500 hover:-translate-y-1 hover:shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+          <label class="font-bold text-blue-100 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
+            Teks Latin (Indonesia)
+          </label>
+          <button onclick="clearText()" class="text-sm bg-red-500/20 text-red-200 hover:bg-red-500/40 hover:text-white border border-red-500/30 px-4 py-1.5 rounded-lg transition-all duration-300">
+            Bersihkan
+          </button>
+        </div>
+        <textarea id="inputLatin" class="glass-input w-full flex-grow p-5 rounded-xl resize-none text-lg md:text-xl leading-relaxed transition-colors duration-300" placeholder="Ketik atau paste teks bahasa Indonesia di sini..."></textarea>
+      </div>
+
+      <!-- Box Output Pegon -->
+      <div class="glass-card p-6 rounded-2xl flex flex-col h-[500px] transition-transform duration-500 hover:-translate-y-1 hover:shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+          <label class="font-bold text-blue-100 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            Aksara Pegon
+          </label>
+          <button onclick="copyPegon()" id="btnCopy" class="text-sm bg-blue-500/30 text-blue-100 hover:bg-blue-500/50 hover:text-white border border-blue-400/30 font-semibold px-5 py-1.5 rounded-lg transition-all duration-300">
+            Salin Teks
+          </button>
+        </div>
+        <textarea id="outputPegon" dir="rtl" readonly class="glass-input pegon-text w-full flex-grow p-5 rounded-xl resize-none transition-colors duration-300" placeholder="Hasil aksara pegon akan otomatis muncul di sini..."></textarea>
+      </div>
+
+    </div>
+    
+    <!-- Footer -->
+    <div class="mt-8 text-center text-blue-300/60 text-sm pb-4">
+      &copy; 2026 SD Insan Nurul Fikri.
+    </div>
+  </div>
+
+  <script>
+    // --- Canvas Network Particle System ---
+    const canvas = document.getElementById('networkCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.vy = (Math.random() - 0.5) * 1.5;
+        this.radius = Math.random() * 2 + 1;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        
+        // Memantul di ujung layar
+        if (this.x < 0 || this.x > width) this.vx *= -1;
+        if (this.y < 0 || this.y > height) this.vy *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(147, 197, 253, 0.5)'; // blue-300
+        ctx.fill();
+      }
+    }
+
+    // Jumlah partikel responsif untuk performa
+    const particleCount = width < 768 ? 40 : 100;
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        
+        // Menggambar garis "network" jika berdekatan
+        for (let j = i + 1; j < particles.length; j++) {
+          let dx = particles[i].x - particles[j].x;
+          let dy = particles[i].y - particles[j].y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            // Garis memudar sesuai dengan jarak
+            ctx.strokeStyle = `rgba(147, 197, 253, ${0.25 - dist / (150 / 0.25)})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+
+    // --- Logika Translator Pegon ---
+    const TANDA_PEPET = "\u0653";
+
+    function toPegon(text) {
+      if (!text) return "";
+      let result = "";
+      let words = text.split(/([\s\n]+)/); 
+
+      for (let word of words) {
+        if (/^[\s\n]+$/.test(word)) {
+          result += word;
+          continue;
+        }
+
+        let pegonWord = "";
+        let lowerWord = word.toLowerCase();
+        let i = 0;
+        
+        while (i < lowerWord.length) {
+          let char = lowerWord[i];
+          let nextChar = lowerWord[i+1] || "";
+          let pair = char + nextChar;
+          let isStart = (i === 0);
+
+          if (pair === "ng") { pegonWord += "ڠ"; i += 2; continue; }
+          if (pair === "ny") { pegonWord += "پ"; i += 2; continue; }
+
+          const consonants = {
+            "b":"ب", "c":"چ", "d":"د", "f":"ف", "v":"ف", 
+            "g":"ࢴ", "h":"ه", "j":"ج", "k":"ك", "l":"ل", 
+            "m":"م", "n":"ن", "p":"ف", "q":"ق", "r":"ر", 
+            "s":"س", "t":"ت", "w":"و", "y":"ي", "z":"ز"
+          };
+
+          if (consonants[char]) {
+            pegonWord += consonants[char];
+            i++; 
+            continue;
+          }
+
+          if (char === "a") {
+            pegonWord += isStart ? "ا" : "ا"; 
+            i++; continue;
+          }
+          if (char === "i") {
+            pegonWord += isStart ? "اِي" : "ي"; 
+            i++; continue;
+          }
+          if (char === "u") {
+            pegonWord += isStart ? "اُو" : "و"; 
+            i++; continue;
+          }
+          if (char === "e") {
+            pegonWord += isStart ? ("ا" + TANDA_PEPET + "ي") : (TANDA_PEPET + "ي"); 
+            i++; continue;
+          }
+          if (char === "o") {
+            pegonWord += isStart ? ("ا" + TANDA_PEPET + "و") : (TANDA_PEPET + "و"); 
+            i++; continue;
+          }
+
+          const numbers = {
+            "0": "٠", "1": "١", "2": "٢", "3": "٣", "4": "٤", 
+            "5": "٥", "6": "٦", "7": "٧", "8": "٨", "9": "٩"
+          };
+          if (numbers[char]) {
+            pegonWord += numbers[char];
+            i++; 
+            continue;
+          }
+
+          if (char === ",") { pegonWord += "،"; }
+          else if (char === "?") { pegonWord += "؟"; }
+          else { pegonWord += word[i]; }
+
+          i++;
+        }
+        result += pegonWord;
+      }
+      return result;
+    }
+
+    const inputEl = document.getElementById('inputLatin');
+    const outputEl = document.getElementById('outputPegon');
+
+    inputEl.addEventListener('input', function() {
+      outputEl.value = toPegon(this.value);
+    });
+
+    function clearText() {
+      inputEl.value = '';
+      outputEl.value = '';
+      inputEl.focus();
+    }
+
+    function copyPegon() {
+      if (!outputEl.value) return;
+      outputEl.select();
+      outputEl.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(outputEl.value);
+      
+      const btn = document.getElementById('btnCopy');
+      const originalText = btn.innerText;
+      btn.innerText = "Tersalin!";
+      btn.classList.add("bg-green-500/50", "border-green-400/50", "text-white");
+      btn.classList.remove("bg-blue-500/30", "text-blue-100", "border-blue-400/30");
+      
+      setTimeout(() => { 
+        btn.innerText = originalText;
+        btn.classList.remove("bg-green-500/50", "border-green-400/50", "text-white");
+        btn.classList.add("bg-blue-500/30", "text-blue-100", "border-blue-400/30");
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
