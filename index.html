@@ -209,6 +209,17 @@
     // --- Logika Translator Pegon ---
     const TANDA_PEPET = "\u0653";
 
+    // Kamus kata khusus / serapan Arab yang memiliki ejaan baku
+    const KATA_KHUSUS = {
+      "islam": "اسلام",
+      "sholat": "صلاة",
+      "shalat": "صلاة",
+      "solat": "صلاة",
+      "ilmu": "علم",
+      "sifat": "صفة",
+      "sabar": "صبر"
+    };
+
     function toPegon(text) {
       if (!text) return "";
       let result = "";
@@ -217,6 +228,13 @@
       for (let word of words) {
         if (/^[\s\n]+$/.test(word)) {
           result += word;
+          continue;
+        }
+
+        // Cek pengecualian kata khusus (tanpa tanda baca di ujung)
+        let cleanWord = word.toLowerCase().replace(/^[^\w]+|[^\w]+$/g, '');
+        if (KATA_KHUSUS[cleanWord]) {
+          result += word.toLowerCase().replace(cleanWord, KATA_KHUSUS[cleanWord]);
           continue;
         }
 
