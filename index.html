@@ -8,30 +8,26 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-    
+
     .pegon-text {
       font-family: 'Amiri', 'Traditional Arabic', serif;
-      font-size: 2rem;
-      line-height: 3rem;
+      font-size: 1.8rem;
+      line-height: 2.8rem;
+    }
+    .pegon-display {
+      font-family: 'Amiri', 'Traditional Arabic', serif;
+      font-size: 1rem;
+      line-height: 1.6rem;
     }
 
-    body {
-      margin: 0;
-      overflow-x: hidden;
-    }
-    
-    /* Latar belakang jaringan ramer / network */
+    body { margin: 0; overflow-x: hidden; }
+
     #networkCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -1;
-      background: linear-gradient(135deg, #0f172a, #1d4ed8, #1e3a8a); /* Gradien biru gelap elegan */
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh; z-index: -1;
+      background: linear-gradient(135deg, #0f172a, #1d4ed8, #1e3a8a);
     }
 
-    /* Glassmorphism UI */
     .glass-card {
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(16px);
@@ -39,165 +35,171 @@
       border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     }
-    
+
     .glass-input {
       background: rgba(0, 0, 0, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: white;
     }
-    .glass-input::placeholder {
-      color: rgba(255, 255, 255, 0.4);
-    }
+    .glass-input::placeholder { color: rgba(255, 255, 255, 0.35); }
     .glass-input:focus {
       background: rgba(0, 0, 0, 0.3);
-      border-color: rgba(96, 165, 250, 0.5); /* blue-400 */
+      border-color: rgba(96, 165, 250, 0.5);
       outline: none;
       box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
     }
 
-    /* Kustomisasi scrollbar untuk text area */
-    ::-webkit-scrollbar {
-      width: 8px;
+    /* Tombol swap animasi */
+    #btnSwap { transition: transform 0.4s ease; }
+    #btnSwap:hover { transform: rotate(180deg); }
+
+    /* Riwayat */
+    .history-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: background 0.2s;
     }
-    ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05); 
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2); 
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.4); 
-    }
+    .history-item:hover { background: rgba(255, 255, 255, 0.09); cursor: pointer; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
   </style>
 </head>
 <body class="text-gray-100 font-sans min-h-screen relative flex flex-col p-4 md:p-8">
 
-  <!-- Background Animasi Network -->
   <canvas id="networkCanvas"></canvas>
 
   <div class="max-w-6xl mx-auto w-full relative z-10 flex-grow flex flex-col">
+
     <!-- Header -->
-    <div class="flex flex-col items-center mb-10 mt-4">
-      <!-- Logo Natural (Tanpa Shape/Border/Rounding) -->
-      <img src="logo.png" alt="Logo SD Insan Nurul Fikri" class="w-36 h-auto mb-6 drop-shadow-2xl">
-      
-      <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white mb-2 text-center drop-shadow-lg tracking-tight">
+    <div class="flex flex-col items-center mb-8 mt-2">
+      <img src="logo.png" alt="Logo SD Insan Nurul Fikri" class="w-32 h-auto mb-5 drop-shadow-2xl">
+      <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white mb-2 text-center tracking-tight">
         Translator Pegon Nusantara
       </h1>
-      <p class="text-blue-200 font-medium text-center tracking-widest uppercase text-sm md:text-base opacity-80">
+      <p class="text-blue-200 font-medium text-center tracking-widest uppercase text-sm opacity-80">
         SD INSAN NURUL FIKRI DEPOK
       </p>
     </div>
 
+    <!-- Mode Toggle Bar -->
+    <div class="flex items-center justify-center gap-4 mb-6">
+      <span id="labelLeft" class="text-sm font-semibold text-blue-200 w-36 text-right tracking-wide">🇮🇩 Latin → Pegon</span>
+      <button id="btnSwap" onclick="swapMode()" 
+        class="glass-card w-12 h-12 rounded-full flex items-center justify-center text-2xl hover:bg-white/10 shadow-lg">
+        ⇄
+      </button>
+      <span id="labelRight" class="text-sm font-semibold text-blue-300/60 w-36 text-left tracking-wide">🔤 Pegon → Latin</span>
+    </div>
+
     <!-- Main Content -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow">
-      
-      <!-- Box Input Latin -->
-      <div class="glass-card p-6 rounded-2xl flex flex-col h-[500px] transition-transform duration-500 hover:-translate-y-1 hover:shadow-2xl">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- Box Input -->
+      <div class="glass-card p-6 rounded-2xl flex flex-col h-[440px] hover:-translate-y-1 transition-transform duration-500">
         <div class="flex justify-between items-center mb-4">
-          <label class="font-bold text-blue-100 flex items-center gap-2">
-            <svg class="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
+          <label id="inputLabel" class="font-bold text-blue-100 flex items-center gap-2 text-sm">
+            <svg class="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
             Teks Latin (Indonesia)
           </label>
-          <button onclick="clearText()" class="text-sm bg-red-500/20 text-red-200 hover:bg-red-500/40 hover:text-white border border-red-500/30 px-4 py-1.5 rounded-lg transition-all duration-300">
+          <button onclick="clearText()" class="text-sm bg-red-500/20 text-red-200 hover:bg-red-500/40 border border-red-500/30 px-4 py-1.5 rounded-lg transition-all duration-300">
             Bersihkan
           </button>
         </div>
-        <textarea id="inputLatin" class="glass-input w-full flex-grow p-5 rounded-xl resize-none text-lg md:text-xl leading-relaxed transition-colors duration-300" placeholder="Ketik atau paste teks bahasa Indonesia di sini..."></textarea>
+        <textarea id="inputLatin"
+          class="glass-input w-full flex-grow p-5 rounded-xl resize-none text-lg leading-relaxed transition-colors duration-300"
+          placeholder="Ketik atau paste teks bahasa Indonesia di sini..."></textarea>
       </div>
 
-      <!-- Box Output Pegon -->
-      <div class="glass-card p-6 rounded-2xl flex flex-col h-[500px] transition-transform duration-500 hover:-translate-y-1 hover:shadow-2xl">
+      <!-- Box Output -->
+      <div class="glass-card p-6 rounded-2xl flex flex-col h-[440px] hover:-translate-y-1 transition-transform duration-500">
         <div class="flex justify-between items-center mb-4">
-          <label class="font-bold text-blue-100 flex items-center gap-2">
-            <svg class="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+          <label id="outputLabel" class="font-bold text-blue-100 flex items-center gap-2 text-sm">
+            <svg class="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             Aksara Pegon
           </label>
-          <button onclick="copyPegon()" id="btnCopy" class="text-sm bg-blue-500/30 text-blue-100 hover:bg-blue-500/50 hover:text-white border border-blue-400/30 font-semibold px-5 py-1.5 rounded-lg transition-all duration-300">
-            Salin Teks
+          <button onclick="copyOutput()" id="btnCopy" class="text-sm bg-blue-500/30 text-blue-100 hover:bg-blue-500/50 border border-blue-400/30 font-semibold px-5 py-1.5 rounded-lg transition-all duration-300">
+            Salin
           </button>
         </div>
-        <textarea id="outputPegon" dir="rtl" readonly class="glass-input pegon-text w-full flex-grow p-5 rounded-xl resize-none transition-colors duration-300" placeholder="Hasil aksara pegon akan otomatis muncul di sini..."></textarea>
+        <textarea id="outputPegon" dir="rtl" readonly
+          class="glass-input pegon-text w-full flex-grow p-5 rounded-xl resize-none transition-colors duration-300"
+          placeholder="Hasil aksara pegon akan muncul di sini..."></textarea>
       </div>
 
     </div>
-    
+
+    <!-- Riwayat Terjemahan -->
+    <div class="glass-card rounded-2xl p-6 mt-8">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-base font-bold text-blue-100 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Riwayat Sesi Ini
+          <span class="text-blue-400/60 text-xs font-normal">(hilang saat refresh)</span>
+        </h2>
+        <button onclick="clearHistory()" class="text-xs text-red-300/70 hover:text-red-200 hover:bg-red-500/20 border border-red-500/20 px-3 py-1 rounded-lg transition-all duration-300">
+          Hapus Semua
+        </button>
+      </div>
+      <div id="historyList" class="space-y-2 max-h-60 overflow-y-auto">
+        <p id="historyEmpty" class="text-blue-300/40 text-sm text-center py-6 italic">
+          Riwayat terjemahan akan muncul di sini...
+        </p>
+      </div>
+    </div>
+
     <!-- Footer -->
-    <div class="mt-8 text-center text-blue-300/60 text-sm pb-4">
-      &copy; 2026 SD Insan Nurul Fikri.
+    <div class="mt-6 text-center text-blue-300/50 text-xs pb-4">
+      &copy; 2026 SD Insan Nurul Fikri Depok. Translator Pegon Nusantara.
     </div>
   </div>
 
   <script>
-    // --- Canvas Network Particle System ---
+    // ─── Canvas Particle Network ─────────────────────────────────────────────
     const canvas = document.getElementById('networkCanvas');
     const ctx = canvas.getContext('2d');
-    let width, height;
-    let particles = [];
+    let W, H, particles = [];
 
-    function resize() {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
-    }
-
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
     window.addEventListener('resize', resize);
     resize();
 
     class Particle {
-      constructor() {
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
-        this.vx = (Math.random() - 0.5) * 1.5;
-        this.vy = (Math.random() - 0.5) * 1.5;
-        this.radius = Math.random() * 2 + 1;
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * W; this.y = Math.random() * H;
+        this.vx = (Math.random() - 0.5) * 1.5; this.vy = (Math.random() - 0.5) * 1.5;
+        this.r = Math.random() * 2 + 1;
       }
       update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        
-        // Memantul di ujung layar
-        if (this.x < 0 || this.x > width) this.vx *= -1;
-        if (this.y < 0 || this.y > height) this.vy *= -1;
+        this.x += this.vx; this.y += this.vy;
+        if (this.x < 0 || this.x > W) this.vx *= -1;
+        if (this.y < 0 || this.y > H) this.vy *= -1;
       }
       draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(147, 197, 253, 0.5)'; // blue-300
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(147,197,253,0.5)'; ctx.fill();
       }
     }
 
-    // Jumlah partikel responsif untuk performa
-    const particleCount = width < 768 ? 40 : 100;
-    for (let i = 0; i < particleCount; i++) {
-      particles.push(new Particle());
-    }
+    const COUNT = window.innerWidth < 768 ? 40 : 100;
+    for (let i = 0; i < COUNT; i++) particles.push(new Particle());
 
     function animate() {
-      ctx.clearRect(0, 0, width, height);
-      
+      ctx.clearRect(0, 0, W, H);
       for (let i = 0; i < particles.length; i++) {
-        particles[i].update();
-        particles[i].draw();
-        
-        // Menggambar garis "network" jika berdekatan
+        particles[i].update(); particles[i].draw();
         for (let j = i + 1; j < particles.length; j++) {
-          let dx = particles[i].x - particles[j].x;
-          let dy = particles[i].y - particles[j].y;
-          let dist = Math.sqrt(dx * dx + dy * dy);
-          
-          if (dist < 150) {
+          const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < 150) {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            // Garis memudar sesuai dengan jarak
-            ctx.strokeStyle = `rgba(147, 197, 253, ${0.25 - dist / (150 / 0.25)})`;
-            ctx.lineWidth = 1;
-            ctx.stroke();
+            ctx.strokeStyle = `rgba(147,197,253,${0.25 - d / 600})`;
+            ctx.lineWidth = 1; ctx.stroke();
           }
         }
       }
@@ -205,100 +207,86 @@
     }
     animate();
 
-
-    // --- Logika Translator Pegon ---
+    // ─── Translator Core ─────────────────────────────────────────────────────
     const TANDA_PEPET = "\u0653";
 
-    // Kamus kata khusus / serapan Arab yang memiliki ejaan baku
+    // Kamus kata khusus Latin → Pegon
     const KATA_KHUSUS = {
-      "islam": "اسلام",
+      "islam":  "اسلام",
       "sholat": "صلاة",
       "shalat": "صلاة",
-      "solat": "صلاة",
-      "ilmu": "علم",
-      "sifat": "صفة",
-      "sabar": "صبر"
+      "solat":  "صلاة",
+      "ilmu":   "علم",
+      "sifat":  "صفة",
+      "sabar":  "صبر"
     };
 
+    // Kamus Pegon → Latin (reverse dari KATA_KHUSUS, ambil yang unik)
+    const KATA_KHUSUS_REVERSE = {};
+    for (const [latin, pegon] of Object.entries(KATA_KHUSUS)) {
+      if (!KATA_KHUSUS_REVERSE[pegon]) KATA_KHUSUS_REVERSE[pegon] = latin;
+    }
+
+    // Peta konsonan Latin → Pegon
+    const CONSONANTS = {
+      "b":"ب","c":"چ","d":"د","f":"ف","v":"ف",
+      "g":"ࢴ","h":"ه","j":"ج","k":"ك","l":"ل",
+      "m":"م","n":"ن","p":"ف","q":"ق","r":"ر",
+      "s":"س","t":"ت","w":"و","y":"ي","z":"ز"
+    };
+
+    // Reverse peta konsonan Pegon → Latin (satu representasi)
+    const CONSONANTS_REVERSE = {};
+    for (const [lat, peg] of Object.entries(CONSONANTS)) {
+      if (!CONSONANTS_REVERSE[peg]) CONSONANTS_REVERSE[peg] = lat;
+    }
+
+    // Peta angka
+    const NUMBERS = {"0":"٠","1":"١","2":"٢","3":"٣","4":"٤","5":"٥","6":"٦","7":"٧","8":"٨","9":"٩"};
+    const NUMBERS_REVERSE = {};
+    for (const [la, ar] of Object.entries(NUMBERS)) NUMBERS_REVERSE[ar] = la;
+
+    // Peta vokal Pegon → Latin (char/char sequence → latin)
+    // Note: reverse vokal bersifat aproksimasi karena ada ambiguitas
+    const VOCAL_REVERSE = {
+      "اِي": "i", "اُو": "u",
+      "\u0653ي": "e", "\u0653و": "o",
+      "ا" : "a",
+      "ي" : "i",
+      "و" : "u",
+    };
+
+    // ─── Latin → Pegon ───────────────────────────────────────────────────────
     function toPegon(text) {
       if (!text) return "";
       let result = "";
-      let words = text.split(/([\s\n]+)/); 
+      for (let word of text.split(/([\s\n]+)/)) {
+        if (/^[\s\n]+$/.test(word)) { result += word; continue; }
 
-      for (let word of words) {
-        if (/^[\s\n]+$/.test(word)) {
-          result += word;
-          continue;
-        }
-
-        // Cek pengecualian kata khusus (tanpa tanda baca di ujung)
-        let cleanWord = word.toLowerCase().replace(/^[^\w]+|[^\w]+$/g, '');
+        // Cek kata khusus
+        const cleanWord = word.toLowerCase().replace(/^[\W]+|[\W]+$/g, '');
         if (KATA_KHUSUS[cleanWord]) {
           result += word.toLowerCase().replace(cleanWord, KATA_KHUSUS[cleanWord]);
           continue;
         }
 
         let pegonWord = "";
-        let lowerWord = word.toLowerCase();
+        const lw = word.toLowerCase();
         let i = 0;
-        
-        while (i < lowerWord.length) {
-          let char = lowerWord[i];
-          let nextChar = lowerWord[i+1] || "";
-          let pair = char + nextChar;
-          let isStart = (i === 0);
-
+        while (i < lw.length) {
+          const ch = lw[i], nx = lw[i+1] || "", pair = ch + nx, isStart = i === 0;
           if (pair === "ng") { pegonWord += "ڠ"; i += 2; continue; }
           if (pair === "ny") { pegonWord += "پ"; i += 2; continue; }
-
-          const consonants = {
-            "b":"ب", "c":"چ", "d":"د", "f":"ف", "v":"ف", 
-            "g":"ࢴ", "h":"ه", "j":"ج", "k":"ك", "l":"ل", 
-            "m":"م", "n":"ن", "p":"ف", "q":"ق", "r":"ر", 
-            "s":"س", "t":"ت", "w":"و", "y":"ي", "z":"ز"
-          };
-
-          if (consonants[char]) {
-            pegonWord += consonants[char];
-            i++; 
-            continue;
-          }
-
-          if (char === "a") {
-            pegonWord += isStart ? "ا" : "ا"; 
-            i++; continue;
-          }
-          if (char === "i") {
-            pegonWord += isStart ? "اِي" : "ي"; 
-            i++; continue;
-          }
-          if (char === "u") {
-            pegonWord += isStart ? "اُو" : "و"; 
-            i++; continue;
-          }
-          if (char === "e") {
-            pegonWord += isStart ? ("ا" + TANDA_PEPET + "ي") : (TANDA_PEPET + "ي"); 
-            i++; continue;
-          }
-          if (char === "o") {
-            pegonWord += isStart ? ("ا" + TANDA_PEPET + "و") : (TANDA_PEPET + "و"); 
-            i++; continue;
-          }
-
-          const numbers = {
-            "0": "٠", "1": "١", "2": "٢", "3": "٣", "4": "٤", 
-            "5": "٥", "6": "٦", "7": "٧", "8": "٨", "9": "٩"
-          };
-          if (numbers[char]) {
-            pegonWord += numbers[char];
-            i++; 
-            continue;
-          }
-
-          if (char === ",") { pegonWord += "،"; }
-          else if (char === "?") { pegonWord += "؟"; }
+          if (CONSONANTS[ch]) { pegonWord += CONSONANTS[ch]; i++; continue; }
+          if (ch === "a") { pegonWord += "ا"; i++; continue; }
+          if (ch === "i") { pegonWord += isStart ? "اِي" : "ي"; i++; continue; }
+          if (ch === "u") { pegonWord += isStart ? "اُو" : "و"; i++; continue; }
+          if (ch === "e") { pegonWord += isStart ? ("ا" + TANDA_PEPET + "ي") : (TANDA_PEPET + "ي"); i++; continue; }
+          if (ch === "o") { pegonWord += isStart ? ("ا" + TANDA_PEPET + "و") : (TANDA_PEPET + "و"); i++; continue; }
+          if (NUMBERS[ch]) { pegonWord += NUMBERS[ch]; i++; continue; }
+          if (ch === ",") { pegonWord += "،"; }
+          else if (ch === "?") { pegonWord += "؟"; }
           else { pegonWord += word[i]; }
-
           i++;
         }
         result += pegonWord;
@@ -306,36 +294,224 @@
       return result;
     }
 
-    const inputEl = document.getElementById('inputLatin');
-    const outputEl = document.getElementById('outputPegon');
+    // ─── Pegon → Latin (Reverse) ─────────────────────────────────────────────
+    function fromPegon(text) {
+      if (!text) return "";
 
-    inputEl.addEventListener('input', function() {
-      outputEl.value = toPegon(this.value);
-    });
+      // Cek kata khusus reverse dulu (seluruh teks per kata)
+      let result = "";
+      for (let segment of text.split(/([\s\n]+)/)) {
+        if (/^[\s\n]+$/.test(segment)) { result += segment; continue; }
 
-    function clearText() {
-      inputEl.value = '';
-      outputEl.value = '';
-      inputEl.focus();
+        // Cek kata khusus Pegon
+        const trimmed = segment.trim();
+        if (KATA_KHUSUS_REVERSE[trimmed]) { result += KATA_KHUSUS_REVERSE[trimmed]; continue; }
+
+        // Proses char by char untuk pegon biasa
+        let latin = "";
+        let chars = [...segment]; // spread ke array karakter unicode
+        let i = 0;
+        while (i < chars.length) {
+          const ch = chars[i];
+
+          // Angka Arab
+          if (NUMBERS_REVERSE[ch]) { latin += NUMBERS_REVERSE[ch]; i++; continue; }
+
+          // Vokal awal (kombinasi 3 char): اِي (alif + kasroh + ya)
+          if (i + 2 < chars.length) {
+            const tri = chars[i] + chars[i+1] + chars[i+2];
+            if (tri === "اِي") { latin += "i"; i += 3; continue; }
+            if (tri === "اُو") { latin += "u"; i += 3; continue; }
+            // pepet vokal
+            const triA = chars[i] + chars[i+1] + chars[i+2];
+            if (triA === "ا" + TANDA_PEPET + "ي") { latin += "e"; i += 3; continue; }
+            if (triA === "ا" + TANDA_PEPET + "و") { latin += "o"; i += 3; continue; }
+          }
+          // Vokal inline 2 char
+          if (i + 1 < chars.length) {
+            const dua = chars[i] + chars[i+1];
+            if (dua === TANDA_PEPET + "ي") { latin += "e"; i += 2; continue; }
+            if (dua === TANDA_PEPET + "و") { latin += "o"; i += 2; continue; }
+          }
+
+          // Konsonan khusus 2 pegon char (ڠ = ng, پ = ny)
+          if (ch === "ڠ") { latin += "ng"; i++; continue; }
+          if (ch === "پ") { latin += "ny"; i++; continue; }
+
+          // Vokal tunggal
+          if (ch === "ا") { latin += "a"; i++; continue; }
+          if (ch === "ي") { latin += "i"; i++; continue; }
+          if (ch === "و") { latin += "u"; i++; continue; }
+
+          // Konsonan biasa
+          if (CONSONANTS_REVERSE[ch]) { latin += CONSONANTS_REVERSE[ch]; i++; continue; }
+
+          // Tanda baca
+          if (ch === "،") { latin += ","; i++; continue; }
+          if (ch === "؟") { latin += "?"; i++; continue; }
+
+          // Tanda pepet tersisa
+          if (ch === TANDA_PEPET) { i++; continue; }
+
+          // Karakter lain (angka latin, spasi, dsb)
+          latin += ch;
+          i++;
+        }
+        result += latin;
+      }
+      return result;
     }
 
-    function copyPegon() {
+    // ─── State & UI ──────────────────────────────────────────────────────────
+    let isReverse = false; // false = Latin→Pegon, true = Pegon→Latin
+    // In-memory history (per session, NOT shared between tabs/users)
+    const sessionHistory = [];
+
+    const inputEl  = document.getElementById('inputLatin');
+    const outputEl = document.getElementById('outputPegon');
+    const inputLabel  = document.getElementById('inputLabel');
+    const outputLabel = document.getElementById('outputLabel');
+    const labelLeft   = document.getElementById('labelLeft');
+    const labelRight  = document.getElementById('labelRight');
+
+    function applyMode() {
+      if (!isReverse) {
+        // Latin → Pegon
+        inputEl.dir = "ltr";
+        outputEl.dir = "rtl";
+        outputEl.classList.add("pegon-text");
+        outputEl.classList.remove("text-lg");
+        inputLabel.lastChild.textContent = " Teks Latin (Indonesia)";
+        outputLabel.lastChild.textContent = " Aksara Pegon";
+        inputEl.placeholder = "Ketik atau paste teks bahasa Indonesia di sini...";
+        outputEl.placeholder = "Hasil aksara pegon akan muncul di sini...";
+        labelLeft.textContent  = "🇮🇩 Latin → Pegon";
+        labelLeft.classList.remove("text-blue-300/60");
+        labelLeft.classList.add("text-blue-200");
+        labelRight.textContent = "🔤 Pegon → Latin";
+        labelRight.classList.remove("text-blue-200");
+        labelRight.classList.add("text-blue-300/60");
+      } else {
+        // Pegon → Latin
+        inputEl.dir = "rtl";
+        outputEl.dir = "ltr";
+        outputEl.classList.remove("pegon-text");
+        outputEl.classList.add("text-lg");
+        inputLabel.lastChild.textContent = " Aksara Pegon";
+        outputLabel.lastChild.textContent = " Teks Latin (Indonesia)";
+        inputEl.placeholder = "Ketik atau paste aksara pegon di sini...";
+        outputEl.placeholder = "Hasil terjemahan Latin akan muncul di sini...";
+        labelLeft.textContent  = "🇮🇩 Latin → Pegon";
+        labelLeft.classList.add("text-blue-300/60");
+        labelLeft.classList.remove("text-blue-200");
+        labelRight.textContent = "🔤 Pegon → Latin";
+        labelRight.classList.add("text-blue-200");
+        labelRight.classList.remove("text-blue-300/60");
+      }
+    }
+
+    function swapMode() {
+      isReverse = !isReverse;
+      // Tukar isi box
+      const tmp = inputEl.value;
+      inputEl.value = outputEl.value;
+      outputEl.value = "";
+      applyMode();
+      // Re-translate
+      if (inputEl.value) {
+        outputEl.value = isReverse ? fromPegon(inputEl.value) : toPegon(inputEl.value);
+      }
+    }
+
+    inputEl.addEventListener('input', function () {
+      const val = this.value;
+      const out = isReverse ? fromPegon(val) : toPegon(val);
+      outputEl.value = out;
+
+      // Simpan ke riwayat sesi (debounced via 800ms)
+      clearTimeout(inputEl._histTimer);
+      inputEl._histTimer = setTimeout(() => {
+        if (val.trim().length > 2 && out.trim()) saveHistory(val.trim(), out.trim());
+      }, 800);
+    });
+
+    applyMode();
+
+    // ─── Tombol ──────────────────────────────────────────────────────────────
+    function clearText() {
+      inputEl.value = ''; outputEl.value = ''; inputEl.focus();
+    }
+
+    function copyOutput() {
       if (!outputEl.value) return;
-      outputEl.select();
-      outputEl.setSelectionRange(0, 99999);
       navigator.clipboard.writeText(outputEl.value);
-      
       const btn = document.getElementById('btnCopy');
-      const originalText = btn.innerText;
-      btn.innerText = "Tersalin!";
+      const orig = btn.innerText;
+      btn.innerText = "Tersalin! ✓";
       btn.classList.add("bg-green-500/50", "border-green-400/50", "text-white");
       btn.classList.remove("bg-blue-500/30", "text-blue-100", "border-blue-400/30");
-      
-      setTimeout(() => { 
-        btn.innerText = originalText;
+      setTimeout(() => {
+        btn.innerText = orig;
         btn.classList.remove("bg-green-500/50", "border-green-400/50", "text-white");
         btn.classList.add("bg-blue-500/30", "text-blue-100", "border-blue-400/30");
       }, 2000);
+    }
+
+    // ─── Riwayat (In-Memory, Per Sesi) ───────────────────────────────────────
+    function saveHistory(input, output) {
+      // Hindari duplikat beruntun
+      if (sessionHistory.length > 0 && sessionHistory[0].input === input) return;
+      sessionHistory.unshift({ input, output, mode: isReverse ? "Pegon→Latin" : "Latin→Pegon", time: new Date().toLocaleTimeString('id-ID') });
+      if (sessionHistory.length > 30) sessionHistory.pop();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      const empty = document.getElementById('historyEmpty');
+      if (sessionHistory.length === 0) {
+        empty.style.display = '';
+        list.querySelectorAll('.history-item').forEach(el => el.remove());
+        return;
+      }
+      empty.style.display = 'none';
+      list.querySelectorAll('.history-item').forEach(el => el.remove());
+
+      for (let idx = 0; idx < sessionHistory.length; idx++) {
+        const item = sessionHistory[idx];
+        const div = document.createElement('div');
+        div.className = 'history-item rounded-xl px-4 py-3 flex flex-col gap-1';
+        div.title = "Klik untuk muat ulang terjemahan ini";
+        div.onclick = () => loadHistory(idx);
+
+        const modeIsReverse = item.mode === "Pegon→Latin";
+        div.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-blue-400/70 font-semibold">${item.mode}</span>
+            <span class="text-xs text-blue-300/40">${item.time}</span>
+          </div>
+          <div class="text-sm text-blue-100 truncate" dir="${modeIsReverse ? 'rtl' : 'ltr'}">${escapeHtml(item.input)}</div>
+          <div class="text-sm text-blue-300/70 truncate ${modeIsReverse ? 'text-lg' : 'pegon-display'}" dir="${modeIsReverse ? 'ltr' : 'rtl'}">${escapeHtml(item.output)}</div>
+        `;
+        list.appendChild(div);
+      }
+    }
+
+    function loadHistory(idx) {
+      const item = sessionHistory[idx];
+      const needReverse = item.mode === "Pegon→Latin";
+      if (needReverse !== isReverse) swapMode();
+      inputEl.value = item.input;
+      outputEl.value = item.output;
+    }
+
+    function clearHistory() {
+      sessionHistory.length = 0;
+      renderHistory();
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
   </script>
 </body>
